@@ -1,0 +1,16 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # Eureka Server не должен регистрироваться сам в себе и не должен забирать реестр
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
