@@ -10,10 +10,12 @@ import ru.nes.booking.dto.UserRequest;
 import ru.nes.booking.entity.Role;
 import ru.nes.booking.entity.User;
 import ru.nes.booking.repository.UserRepository;
-import ru.nes.booking.security.JwtService;
 import ru.nes.booking.service.UserService;
+import ru.nes.common.security.JwtService; // Импортируем из common!
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final JwtService jwtService; // Теперь из common
 
     @Override
     @Transactional
@@ -35,7 +37,12 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .build();
         userRepository.save(user);
-        return new AuthResponse(jwtService.generateToken(user));
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        claims.put("userId", user.getId());
+
+        return new AuthResponse(jwtService.generateToken(user.getUsername(), claims));
     }
 
     @Override
@@ -46,7 +53,12 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
-        return new AuthResponse(jwtService.generateToken(user));
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        claims.put("userId", user.getId());
+
+        return new AuthResponse(jwtService.generateToken(user.getUsername(), claims));
     }
 
     @Override

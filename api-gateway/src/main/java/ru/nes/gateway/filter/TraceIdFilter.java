@@ -3,6 +3,7 @@ package ru.nes.gateway.filter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -20,9 +21,11 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
             traceId = UUID.randomUUID().toString();
         }
 
-        // Мутируем запрос, добавляя заголовок
+        String finalTraceId = traceId;
+
+        // ИСПРАВЛЕНИЕ: используем writableHttpHeaders для предотвращения UnsupportedOperationException
         ServerHttpRequest request = exchange.getRequest().mutate()
-                .header("X-Request-Id", traceId)
+                .headers(h -> HttpHeaders.writableHttpHeaders(h).set("X-Request-Id", finalTraceId))
                 .build();
 
         // Добавляем заголовок в ответ
@@ -33,6 +36,6 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1; // Высокий приоритет, выполняется первым
+        return -1;
     }
 }
