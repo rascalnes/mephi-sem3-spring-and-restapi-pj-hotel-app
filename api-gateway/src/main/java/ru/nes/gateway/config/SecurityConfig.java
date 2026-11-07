@@ -29,10 +29,17 @@ public class SecurityConfig {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        // Разрешаем preflight запросы (CORS)
+                        // 1. Разрешаем preflight запросы (CORS)
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. Разрешаем Swagger и Actuator
                         .pathMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
                         .pathMatchers("/api/hotels/v3/api-docs", "/api/bookings/v3/api-docs").permitAll()
+
+                        // 3. РАЗРЕШАЕМ АВТОРИЗАЦИЮ И РЕГИСТРАЦИЮ (без токена)
+                        .pathMatchers("/api/user/auth", "/api/user/register").permitAll()
+
+                        // 4. Все остальные запросы требуют токен
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder())));
@@ -48,12 +55,11 @@ public class SecurityConfig {
                 .build();
     }
 
-    // Разрешаем CORS
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // Для разработки разрешаем все источники
+        config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
