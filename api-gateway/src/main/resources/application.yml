@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
@@ -8,22 +11,21 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        # 1. Маршруты для Swagger (используем StripPrefix=2)
+        # 1. Маршруты для получения Swagger спецификаций (api-docs)
         - id: hotel-swagger
           uri: lb://HOTEL-SERVICE
           predicates:
-            - Path=/api/hotels/v3/api-docs/**
+            - Path=/api/hotels/v3/api-docs
           filters:
-            - StripPrefix=2 # /api/hotels убирается, остается /v3/api-docs
-
+            - SetPath=/v3/api-docs
         - id: booking-swagger
           uri: lb://BOOKING-SERVICE
           predicates:
-            - Path=/api/bookings/v3/api-docs/**
+            - Path=/api/bookings/v3/api-docs
           filters:
-            - StripPrefix=2 # /api/bookings убирается, остается /v3/api-docs
+            - SetPath=/v3/api-docs
 
-        # 2. Основные маршруты (ВАЖНО: они должны идти ПОСЛЕ Swagger)
+        # 2. Основные маршруты
         - id: booking-service
           uri: lb://BOOKING-SERVICE
           predicates:
@@ -35,8 +37,9 @@ spring:
           uri: lb://HOTEL-SERVICE
           predicates:
             - Path=/api/hotels/**,/api/rooms/**
+          # Здесь БЕЗ StripPrefix
 
-# ВАЖНО: springdoc находится на корневом уровне
+# ВАЖНО: springdoc находится на корневом уровне, а не внутри spring!
 springdoc:
   swagger-ui:
     urls:
@@ -44,3 +47,13 @@ springdoc:
         url: /api/bookings/v3/api-docs
       - name: Hotel Service
         url: /api/hotels/v3/api-docs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: my-super-secret-key-for-mephi-spring-project-12345
