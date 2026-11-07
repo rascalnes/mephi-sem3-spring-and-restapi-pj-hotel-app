@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 1. Маршруты для Swagger (используем StripPrefix=2)
+        - id: hotel-swagger
+          uri: lb://HOTEL-SERVICE
+          predicates:
+            - Path=/api/hotels/v3/api-docs/**
+          filters:
+            - StripPrefix=2 # /api/hotels убирается, остается /v3/api-docs
+
+        - id: booking-swagger
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/bookings/v3/api-docs/**
+          filters:
+            - StripPrefix=2 # /api/bookings убирается, остается /v3/api-docs
+
+        # 2. Основные маршруты (ВАЖНО: они должны идти ПОСЛЕ Swagger)
+        - id: booking-service
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/bookings/**,/api/booking/**,/api/user/**
+          filters:
+            - StripPrefix=1
+
+        - id: hotel-service
+          uri: lb://HOTEL-SERVICE
+          predicates:
+            - Path=/api/hotels/**,/api/rooms/**
+
+# ВАЖНО: springdoc находится на корневом уровне
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Booking Service
+        url: /api/bookings/v3/api-docs
+      - name: Hotel Service
+        url: /api/hotels/v3/api-docs
