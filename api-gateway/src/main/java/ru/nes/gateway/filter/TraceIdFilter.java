@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -23,13 +24,19 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
 
         String finalTraceId = traceId;
 
-        // ИСПРАВЛЕНИЕ: используем writableHttpHeaders для предотвращения UnsupportedOperationException
-        ServerHttpRequest request = exchange.getRequest().mutate()
-                .headers(h -> HttpHeaders.writableHttpHeaders(h).set("X-Request-Id", finalTraceId))
-                .build();
+        // Безопасный декоратор для изменения заголовков запроса (избегает ReadOnlyHttpHeaders)
+        ServerHttpRequest request = new ServerHttpRequestDecorator(exchange.getRequest()) {
+            @Override
+            public HttpHeaders getHeaders() {
+                HttpHeaders headers = new HttpHeaders();
+                headers.putAll(super.getHeaders());
+                headers.set("X-Request-Id", finalTraceId);
+                return headers;
+            }
+        };
 
-        // Добавляем заголовок в ответ
-        exchange.getResponse().getHeaders().add("X-Request-Id", traceId);
+        // Добавляем заголовок в ответ (для клиента)
+        exchange.getResponse().getHeaders().set("X-Request-Id", traceId);
 
         return chain.filter(exchange.mutate().request(request).build());
     }
