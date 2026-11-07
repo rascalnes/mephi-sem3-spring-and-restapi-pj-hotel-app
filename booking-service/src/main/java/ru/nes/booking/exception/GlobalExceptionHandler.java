@@ -1,5 +1,6 @@
 package ru.nes.booking.exception;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,15 +37,33 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now().toString(),
+                "status", 409,
+                "error", "Conflict",
+                "message", ex.getMessage()
+        ));
+    }
+
+    // Обработка таймаутов и разомкнутого Circuit Breaker (возвращаем 503)
+    @ExceptionHandler({TimeoutException.class, CallNotPermittedException.class})
+    public ResponseEntity<Map<String, Object>> handleServiceUnavailable(Exception ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "timestamp", LocalDateTime.now().toString(),
+                "status", 503,
+                "error", "Service Unavailable",
+                "message", "Hotel Service is currently unavailable. Please try again later."
+        ));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
-        // В реальном проекте лучше разделить на кастомные исключения
-        HttpStatus status = ex.getMessage().contains("Conflict") || ex.getMessage().contains("already booked")
-                ? HttpStatus.CONFLICT : HttpStatus.INTERNAL_SERVER_ERROR;
-        return ResponseEntity.status(status).body(Map.of(
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "timestamp", LocalDateTime.now().toString(),
-                "status", status.value(),
-                "error", status.getReasonPhrase(),
+                "status", 500,
+                "error", "Internal Server Error",
                 "message", ex.getMessage()
         ));
     }
