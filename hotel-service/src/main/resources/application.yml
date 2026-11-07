@@ -22,11 +22,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Временный секрет (в этапе 7 вынесем в common)
-          jwk-set-uri: http://localhost:8081/.well-known/jwks.json # Заглушка, реальная проверка будет через общий секрет
-          # Мы будем использовать симметричный ключ (HMAC), поэтому используем secret-key
-          # Для Spring Security OAuth2 Resource Server проще использовать публичный ключ,
-          # но для учебного проекта сгенерируем RSA или используем Nimbus.
+          jwk-set-uri: http://localhost:8081/.well-known/jwks.json
 
 eureka:
   client:
@@ -40,3 +36,6 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+jwt:
+  secret: my-super-secret-key-for-mephi-spring-project-12345
