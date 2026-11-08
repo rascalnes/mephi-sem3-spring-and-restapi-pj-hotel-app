@@ -82,13 +82,13 @@ class RoomControllerTest {
         req.setStartDate(LocalDate.now().plusDays(1));
         req.setEndDate(LocalDate.now().plusDays(5));
 
-        // Act 1: Первое бронирование (успех)
+        // Первое бронирование (успех)
         mockMvc.perform(post("/api/rooms/" + room.getId() + "/confirm-availability")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
 
-        // Act 2: Второе бронирование на те же даты (ошибка 409)
+        // Второе бронирование на те же даты (ошибка 409)
         mockMvc.perform(post("/api/rooms/" + room.getId() + "/confirm-availability")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))

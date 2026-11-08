@@ -41,7 +41,7 @@ public class HotelClient {
         return ((Number) rooms.get(0).get("id")).longValue();
     }
 
-    // Включаем паттерны отказоустойчивости
+    // Паттерны отказоустойчивости
     @TimeLimiter(name = "hotelService")
     @CircuitBreaker(name = "hotelService", fallbackMethod = "fallbackConfirm")
     @Retry(name = "hotelService", fallbackMethod = "fallbackConfirm")
@@ -64,7 +64,7 @@ public class HotelClient {
     }
 
     // Компенсация (Best-effort)
-    @Retry(name = "hotelService") // Пытаемся отправить release до 3 раз
+    @Retry(name = "hotelService") // Попытка отправить release до 3 раз
     public void release(Long roomId, AvailabilityRequest request, String token) {
         log.info("Compensating: calling Hotel Service to release room {} from {} to {}", roomId, request.getStartDate(), request.getEndDate());
         restClient.post()

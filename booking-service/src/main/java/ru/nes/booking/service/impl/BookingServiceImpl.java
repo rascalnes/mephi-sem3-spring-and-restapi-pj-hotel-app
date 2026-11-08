@@ -41,10 +41,10 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Room ID must be provided if autoSelect is false");
         }
 
-        // 1. Локальная транзакция: Создаем PENDING
+        // Локальная транзакция: Создание PENDING
         Booking booking = saveBooking(userId, roomId, request, BookingStatus.PENDING);
 
-        // Добавляем bookingId в MDC для сквозного логирования
+        // bookingId в MDC для сквозного логирования
         MDC.put("bookingId", booking.getId().toString());
 
         try {
@@ -52,17 +52,17 @@ public class BookingServiceImpl implements BookingService {
 
             AvailabilityRequest availReq = new AvailabilityRequest(request.getStartDate(), request.getEndDate());
 
-            // 2. Удаленный вызов с Timeout (TimeLimiter ограничен 2 секундами)
+            // Удаленный вызов с Timeout (TimeLimiter ограничен 2 секундами)
             CompletableFuture<Void> future = hotelClient.confirmAvailability(roomId, availReq, rawToken);
             future.get(3, TimeUnit.SECONDS); // Ждем чуть больше, чем TimeLimiter
 
-            // 3. Успех: CONFIRMED
+            // Успех: CONFIRMED
             booking.setStatus(BookingStatus.CONFIRMED);
             bookingRepository.save(booking);
             log.info("Saga completed for booking {}. Status: CONFIRMED", booking.getId());
 
         } catch (Exception e) {
-            // 4. Ошибка: CANCELLED + компенсация
+            // Ошибка: CANCELLED + компенсация
             log.error("Saga failed for booking {}. Executing compensation...", booking.getId());
 
             booking.setStatus(BookingStatus.CANCELLED);
@@ -78,7 +78,7 @@ public class BookingServiceImpl implements BookingService {
                 log.error("Compensation failed (best-effort): {}", releaseEx.getMessage());
             }
 
-            // Пробрасываем ошибку наверх для клиента
+            // Проброс ошибки наверх для клиента
             if (e.getCause() instanceof HttpClientErrorException.Conflict || e instanceof HttpClientErrorException.Conflict) {
                 throw new ConflictException("Room is already booked for these dates");
             }

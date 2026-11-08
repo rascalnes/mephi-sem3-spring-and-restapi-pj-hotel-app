@@ -72,7 +72,7 @@ class BookingControllerTest {
         validRequest.setStartDate(LocalDate.now().plusDays(1));
         validRequest.setEndDate(LocalDate.now().plusDays(5));
 
-        // Генерируем реальный JWT для теста
+        // Генерация реального JWT для теста
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", "USER");
         claims.put("userId", 1L);
@@ -153,7 +153,7 @@ class BookingControllerTest {
                     // Assert
                     .andExpect(status().isCreated());
 
-            // Проверяем, что в БД создалась только 1 бронь, и Hotel Service вызвался 1 раз
+            // Проверка, что в БД создалась только 1 бронь, и Hotel Service вызвался 1 раз
             assertEquals(1, bookingRepository.count());
             verify(hotelClient, times(1)).confirmAvailability(anyLong(), any(), anyString());
         }

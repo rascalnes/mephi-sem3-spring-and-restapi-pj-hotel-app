@@ -63,7 +63,7 @@ public class RoomServiceImpl implements RoomService {
     public void confirmAvailability(Long roomId, AvailabilityRequest request) {
         log.info("Confirming availability for room {} from {} to {}", roomId, request.getStartDate(), request.getEndDate());
 
-        // 1. Берем пессимистичную блокировку
+        // Пессимистичная блокировка
         Room room = roomRepository.findByIdWithLock(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
@@ -71,13 +71,13 @@ public class RoomServiceImpl implements RoomService {
             throw new RoomUnavailableException("Room is out of service");
         }
 
-        // 2. Проверяем пересечение дат
+        // Пересечение дат
         List<RoomSlot> overlapping = roomSlotRepository.findOverlappingSlots(roomId, request.getStartDate(), request.getEndDate());
         if (!overlapping.isEmpty()) {
             throw new RoomUnavailableException("Room is already booked for these dates");
         }
 
-        // 3. Создаем слот и инкрементим счетчик
+        // Слот и инкремент счетчика
         RoomSlot slot = RoomSlot.builder()
                 .room(room)
                 .startDate(request.getStartDate())
@@ -100,7 +100,7 @@ public class RoomServiceImpl implements RoomService {
         if (!slots.isEmpty()) {
             roomSlotRepository.deleteAll(slots);
 
-            // Откатываем счетчик (best-effort)
+            // Откат счетчика (best-effort)
             Room room = roomRepository.findById(roomId).orElse(null);
             if (room != null && room.getTimesBooked() > 0) {
                 room.setTimesBooked(room.getTimesBooked() - 1);

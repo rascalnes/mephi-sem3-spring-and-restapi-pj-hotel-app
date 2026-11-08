@@ -35,7 +35,6 @@ public class TraceIdFilter implements GlobalFilter, Ordered {
             }
         };
 
-        // Добавляем заголовок в ответ (для клиента)
         exchange.getResponse().getHeaders().set("X-Request-Id", traceId);
 
         return chain.filter(exchange.mutate().request(request).build());

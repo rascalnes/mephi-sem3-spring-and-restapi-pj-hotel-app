@@ -34,21 +34,21 @@ public class BookingController {
             @Valid @RequestBody BookingRequest request,
             JwtAuthenticationToken token) throws JsonProcessingException {
 
-        // 1. Проверка идемпотентности
+        // Проверка идемпотентности
         ProcessedRequest existing = processedRequestRepository.findById(requestId).orElse(null);
         if (existing != null) {
             BookingResponse cachedResponse = objectMapper.readValue(existing.getResponseBody(), BookingResponse.class);
             return ResponseEntity.status(existing.getStatusCode()).body(cachedResponse);
         }
 
-        // 2. Извлекаем userId из токена
+        // Извлечь userId из токена
         Long userId = ((Number) token.getToken().getClaim("userId")).longValue();
         String rawToken = "Bearer " + token.getToken().getTokenValue();
 
-        // 3. Обработка
+        // Обработка
         BookingResponse response = bookingService.createBooking(request, userId, rawToken);
 
-        // 4. Сохранение ответа для идемпотентности
+        // Сохранение ответа для идемпотентности
         ProcessedRequest pr = ProcessedRequest.builder()
                 .requestId(requestId)
                 .responseBody(objectMapper.writeValueAsString(response))
@@ -60,7 +60,7 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/bookings") // Теперь путь ровно /bookings, как в ТЗ
+    @GetMapping("/bookings") // Путь /bookings
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Page<BookingResponse> getMyBookings(
             Pageable pageable,

@@ -39,7 +39,7 @@
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!-- Logstash Encoder (ДОБАВЛЕНО СЮДА, чтобы был транзитивно доступен) -->
+        <!-- Logstash Encoder (чтобы был транзитивно доступен) -->
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
