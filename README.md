@@ -46,7 +46,7 @@ graph TD
 
 ## 🚀 Запуск проекта
 
-Для запуска потребуется запустить 4 приложения в следующем порядке (в IntelliJ IDEA):
+Для проаерки потребуется запустить 4 приложения в следующем порядке (в IntelliJ IDEA):
 
 1. **Eureka Server** (`eureka-server`) - http://localhost:8761
 2. **Hotel Service** (`hotel-service`) - http://localhost:8082
